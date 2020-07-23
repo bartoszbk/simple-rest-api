@@ -15,6 +15,8 @@ import java.util.Map;
 @AllArgsConstructor
 public class UserService {
 
+    RequestCountService requestCountService;
+
     ObjectMapper objectMapper;
 
     public Map<String, Object> getUserByLogin(String login) {
@@ -23,6 +25,7 @@ public class UserService {
 
     private Map<String, Object> getGithubUserByLogin(String login) {
         String response = getGithubRequestSpec(login).bodyToMono(String.class).block();
+        requestCountService.incrementCountByLogin(login);
         return parseGitHubResponse(response);
     }
 
