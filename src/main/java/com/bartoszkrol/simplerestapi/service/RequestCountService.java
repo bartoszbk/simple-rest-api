@@ -17,10 +17,9 @@ public class RequestCountService {
     public void incrementCountByLogin(String login) throws UserNotFoundException {
         log.info(String.format("Increment request count for login: %s", login));
 
-        requestCountRepository.getByLogin(login).map(RequestCount::incrementRequestCount).orElseGet(() -> {
+        requestCountRepository.getByLogin(login).map(requestCount -> requestCountRepository.save(requestCount.incrementRequestCount())).orElseGet(() -> {
             log.info(String.format("Saving user with login: %s", login));
-            requestCountRepository.save(new RequestCount(login, 1));
-            return 1;
+            return requestCountRepository.save(new RequestCount(login, 1));
         });
     }
 

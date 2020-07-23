@@ -3,15 +3,14 @@ package com.bartoszkrol.simplerestapi.domain;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Entity
 @Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestCount {
@@ -23,9 +22,23 @@ public class RequestCount {
     @Column(name = "REQUEST_COUNT")
     private Integer requestCount;
 
-    public int incrementRequestCount() {
+    public RequestCount incrementRequestCount() {
         requestCount += 1;
-        return requestCount;
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RequestCount that = (RequestCount) o;
+        return login.equals(that.login) &&
+                requestCount.equals(that.requestCount);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(login, requestCount);
     }
 
 }
