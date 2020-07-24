@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface RequestCountRepository extends JpaRepository<RequestCount, String> {
+
     Optional<RequestCount> getByLogin(String login);
 }

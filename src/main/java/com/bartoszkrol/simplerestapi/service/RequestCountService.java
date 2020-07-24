@@ -1,7 +1,6 @@
 package com.bartoszkrol.simplerestapi.service;
 
 import com.bartoszkrol.simplerestapi.domain.RequestCount;
-import com.bartoszkrol.simplerestapi.exception.UserNotFoundException;
 import com.bartoszkrol.simplerestapi.repository.RequestCountRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,7 @@ public class RequestCountService {
 
     RequestCountRepository requestCountRepository;
 
-    public void incrementCountByLogin(String login) throws UserNotFoundException {
+    public void incrementCountByLogin(String login) {
         log.info(String.format("Increment request count for login: %s", login));
 
         requestCountRepository.getByLogin(login).map(requestCount -> requestCountRepository.save(requestCount.incrementRequestCount())).orElseGet(() -> {

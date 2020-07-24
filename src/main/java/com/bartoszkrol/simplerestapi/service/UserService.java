@@ -1,10 +1,12 @@
 package com.bartoszkrol.simplerestapi.service;
 
 import com.bartoszkrol.simplerestapi.enumeration.JsonFields;
+import com.bartoszkrol.simplerestapi.exception.UserNotFoundException;
 import com.bartoszkrol.simplerestapi.utils.WebClientBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final RequestCountService requestCountService;
@@ -28,11 +31,11 @@ public class UserService {
     @Value("${github.users_endpoint}")
     private String githubUsers;
 
-    public Map<String, Object> getUserByLogin(String login) {
+    public Map<String, Object> getUserByLogin(String login) throws UserNotFoundException {
         return getOutput(login);
     }
 
-    private Map<String, Object> getOutput(String login) {
+    private Map<String, Object> getOutput(String login) throws UserNotFoundException {
         Map<String, Object> gitHubResponse = getGithubUserByLogin(login);
 
         Map<String, Object> output = new LinkedHashMap<>();
@@ -51,10 +54,25 @@ public class UserService {
         return 6.0 / ((Integer) githubResponse.get(JsonFields.FOLLOWERS.getName())) * (2 + ((Integer) githubResponse.get(JsonFields.PUBLIC_REPOS.getName())));
     }
 
-    private Map<String, Object> getGithubUserByLogin(String login) {
-        String response = getGithubRequestSpec(login).bodyToMono(String.class).block();
+    private Map<String, Object> getGithubUserByLogin(String login) throws UserNotFoundException {
+        String response = retrieveGithubUser(login);
+
         requestCountService.incrementCountByLogin(login);
         return parseGitHubResponse(response);
+    }
+
+    private String retrieveGithubUser(String login) throws UserNotFoundException {
+
+        String response;
+
+        try {
+            response = getGithubRequestSpec(login).bodyToMono(String.class).block();
+        } catch (Exception e) {
+            log.error(String.format("Invalid request for user login: %s", login));
+            throw new UserNotFoundException(String.format("User with login: %s not found", login));
+        }
+
+        return response;
     }
 
     private Map<String, Object> parseGitHubResponse(String response) {
@@ -63,7 +81,7 @@ public class UserService {
         try {
             responseMap = objectMapper.readValue(response, Map.class);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error(String.format("Error parsing Github response: %s", e.getMessage()));
         }
 
         return responseMap;
