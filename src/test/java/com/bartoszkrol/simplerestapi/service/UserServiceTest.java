@@ -3,7 +3,6 @@ package com.bartoszkrol.simplerestapi.service;
 import com.bartoszkrol.simplerestapi.BaseSpringTestClass;
 import com.bartoszkrol.simplerestapi.enumeration.JsonFields;
 import com.bartoszkrol.simplerestapi.exception.UserNotFoundException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Assert;
@@ -20,11 +19,7 @@ import java.util.Map;
 
 public class UserServiceTest extends BaseSpringTestClass {
 
-    @Autowired
     private UserService userService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private static final String localhost = "http://localhost:8100";
 
@@ -58,7 +53,7 @@ public class UserServiceTest extends BaseSpringTestClass {
         Map<String, Object> result = makeMockCall(mockResponse, 200);
         Map<String, Object> expectedResult = getExpectedResult(4.2);
 
-        Assert.assertEquals(objectMapper.writeValueAsString(expectedResult), objectMapper.writeValueAsString(result));
+        Assert.assertEquals(mapToString(expectedResult), mapToString(result));
     }
 
     @Test
@@ -67,7 +62,7 @@ public class UserServiceTest extends BaseSpringTestClass {
         Map<String, Object> result = makeMockCall(mockResponse, 200);
         Map<String, Object> expectedResult = getExpectedResult(0.0);
 
-        Assert.assertEquals(objectMapper.writeValueAsString(expectedResult), objectMapper.writeValueAsString(result));
+        Assert.assertEquals(mapToString(expectedResult), mapToString(result));
     }
 
     @Test
@@ -76,7 +71,7 @@ public class UserServiceTest extends BaseSpringTestClass {
         Map<String, Object> result = makeMockCall(mockResponse, 200);
         Map<String, Object> expectedResult = getExpectedResult(0.0);
 
-        Assert.assertEquals(objectMapper.writeValueAsString(expectedResult), objectMapper.writeValueAsString(result));
+        Assert.assertEquals(mapToString(expectedResult), mapToString(result));
     }
 
     @Test
@@ -85,7 +80,7 @@ public class UserServiceTest extends BaseSpringTestClass {
         Map<String, Object> result = makeMockCall(mockResponse, 200);
         Map<String, Object> expectedResult = getExpectedResult(0.0);
 
-        Assert.assertEquals(objectMapper.writeValueAsString(expectedResult), objectMapper.writeValueAsString(result));
+        Assert.assertEquals(mapToString(expectedResult), mapToString(result));
     }
 
     @Test
@@ -104,7 +99,7 @@ public class UserServiceTest extends BaseSpringTestClass {
 
     private void enqueueMockResponse(Map<String, Object> mockResponse, int statusCode) throws Exception {
         mockWebServer.enqueue(new MockResponse().setResponseCode(statusCode)
-                .setBody(objectMapper.writeValueAsString(mockResponse))
+                .setBody(mapToString(mockResponse))
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
     }
 
@@ -169,6 +164,11 @@ public class UserServiceTest extends BaseSpringTestClass {
         response.put(JsonFields.FOLLOWERS.getName(), followers);
         response.put(JsonFields.PUBLIC_REPOS.getName(), repos);
         return response;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
 }

@@ -10,10 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class RequestCountServiceTest extends BaseSpringTestClass {
 
-    @Autowired
     RequestCountRepository requestCountRepository;
 
-    @Autowired
     RequestCountService requestCountService;
 
     @Test
@@ -33,4 +31,13 @@ class RequestCountServiceTest extends BaseSpringTestClass {
         Assert.assertEquals(expected, requestCountRepository.getByLogin("mock_user").get());
     }
 
+    @Autowired
+    public void setRequestCountRepository(RequestCountRepository requestCountRepository) {
+        this.requestCountRepository = requestCountRepository;
+    }
+
+    @Autowired
+    public void setRequestCountService(RequestCountService requestCountService) {
+        this.requestCountService = requestCountService;
+    }
 }
