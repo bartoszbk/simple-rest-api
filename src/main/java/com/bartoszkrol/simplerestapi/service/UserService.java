@@ -52,7 +52,7 @@ public class UserService {
     }
 
     private Double getCalculation(Map<String, Object> githubResponse) {
-        String login = (String) githubResponse.getOrDefault(JsonFields.ID.getName(), "null");
+        String login = (String) githubResponse.getOrDefault(JsonFields.LOGIN.getName(), "null");
         int followersNum = (Integer) githubResponse.getOrDefault(JsonFields.FOLLOWERS.getName(), 0);
         int reposNum = (Integer) githubResponse.getOrDefault(JsonFields.PUBLIC_REPOS.getName(), 0);
 
