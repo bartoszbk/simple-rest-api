@@ -13,12 +13,15 @@ import reactor.netty.tcp.TcpClient;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-public class WebClientBuilder {
+public final class WebClientProvider {
 
     public static WebClient getWebClient(String baseUrl) {
+        return getWebClient(baseUrl, 6000);
+    }
 
+    public static WebClient getWebClient(String baseUrl, int timeout) {
         return WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(getTcpClient())))
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(getTcpClient(timeout))))
                 .baseUrl(baseUrl)
                 .defaultCookie("cookieKey", "cookieValue")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -26,11 +29,11 @@ public class WebClientBuilder {
                 .build();
     }
 
-    private static TcpClient getTcpClient() {
-        return TcpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
+    private static TcpClient getTcpClient(int timeout) {
+        return TcpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout)
                 .doOnConnected(connection -> {
-                    connection.addHandlerLast(new ReadTimeoutHandler(6000, TimeUnit.MILLISECONDS));
-                    connection.addHandlerLast(new WriteTimeoutHandler(6000, TimeUnit.MILLISECONDS));
+                    connection.addHandlerLast(new ReadTimeoutHandler(timeout, TimeUnit.MILLISECONDS));
+                    connection.addHandlerLast(new WriteTimeoutHandler(timeout, TimeUnit.MILLISECONDS));
                 });
     }
 }

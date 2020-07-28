@@ -1,16 +1,20 @@
 package com.bartoszkrol.simplerestapi.service;
 
 import com.bartoszkrol.simplerestapi.enumeration.JsonFields;
+import com.bartoszkrol.simplerestapi.exception.ExternalApiException;
+import com.bartoszkrol.simplerestapi.exception.InvalidRequestException;
 import com.bartoszkrol.simplerestapi.exception.UserNotFoundException;
-import com.bartoszkrol.simplerestapi.utils.WebClientBuilder;
+import com.bartoszkrol.simplerestapi.utils.WebClientProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,17 +29,14 @@ public class UserService {
 
     private final ObjectMapper objectMapper;
 
-    @Value("${github.url}")
-    private String githubUrl;
-
-    @Value("${github.users_endpoint}")
+    @Value("${github.users_url}")
     private String githubUsers;
 
-    public Map<String, Object> getUserByLogin(String login) throws UserNotFoundException {
+    public Map<String, Object> getUserByLogin(String login) {
         return getOutput(login);
     }
 
-    private Map<String, Object> getOutput(String login) throws UserNotFoundException {
+    private Map<String, Object> getOutput(String login) {
         Map<String, Object> gitHubResponse = getGithubUserByLogin(login);
 
         Map<String, Object> output = new LinkedHashMap<>();
@@ -51,28 +52,35 @@ public class UserService {
     }
 
     private Double getCalculation(Map<String, Object> githubResponse) {
-        return 6.0 / ((Integer) githubResponse.get(JsonFields.FOLLOWERS.getName())) * (2 + ((Integer) githubResponse.get(JsonFields.PUBLIC_REPOS.getName())));
+        String login = (String) githubResponse.getOrDefault(JsonFields.ID.getName(), "null");
+        int followersNum = (Integer) githubResponse.getOrDefault(JsonFields.FOLLOWERS.getName(), 0);
+        int reposNum = (Integer) githubResponse.getOrDefault(JsonFields.PUBLIC_REPOS.getName(), 0);
+
+        if (followersNum == 0 || reposNum == 0) {
+            log.error(String.format("Invalid division by zero for user with login: %s", login));
+            return 0.0;
+        }
+
+        return 6.0 / followersNum * (2.0 + reposNum);
     }
 
-    private Map<String, Object> getGithubUserByLogin(String login) throws UserNotFoundException {
+    private Map<String, Object> getGithubUserByLogin(String login) {
         String response = retrieveGithubUser(login);
-
         requestCountService.incrementCountByLogin(login);
         return parseGitHubResponse(response);
     }
 
-    private String retrieveGithubUser(String login) throws UserNotFoundException {
-
-        String response;
-
-        try {
-            response = getGithubRequestSpec(login).bodyToMono(String.class).block();
-        } catch (Exception e) {
-            log.error(String.format("Invalid request for user login: %s", login));
-            throw new UserNotFoundException(String.format("User with login: %s not found", login));
-        }
-
-        return response;
+    private String retrieveGithubUser(String login) {
+        return getGithubRequestSpec(login).onStatus(HttpStatus.NOT_FOUND::equals, clientNFResponse -> {
+            log.error(String.format("User '%s' not found", login));
+            return Mono.error(new UserNotFoundException(String.format("User with login: '%s' not found", login)));
+        }).onStatus(HttpStatus::is4xxClientError, clientErrResponse -> {
+            log.error(String.format("Invalid request login: '%s'", login));
+            return Mono.error(new InvalidRequestException(String.format("Invalid request for user with login: '%s'", login)));
+        }).onStatus(HttpStatus::is5xxServerError, serverErrResponse -> {
+            log.error(String.format("External API Server Error for user login: '%s'", login));
+            return Mono.error(new ExternalApiException(String.format("External API Error for user: '%s'", login)));
+        }).bodyToMono(String.class).block();
     }
 
     private Map<String, Object> parseGitHubResponse(String response) {
@@ -81,14 +89,14 @@ public class UserService {
         try {
             responseMap = objectMapper.readValue(response, Map.class);
         } catch (JsonProcessingException e) {
-            log.error(String.format("Error parsing Github response: %s", e.getMessage()));
+            log.error(String.format("Error parsing Github response for login: '%s'", e.getMessage()));
         }
 
         return responseMap;
     }
 
     private WebClient.ResponseSpec getGithubRequestSpec(String login) {
-        WebClient webClient = WebClientBuilder.getWebClient(githubUrl + githubUsers);
+        WebClient webClient = WebClientProvider.getWebClient(githubUsers);
         return webClient.method(HttpMethod.GET).uri(uriBuilder -> uriBuilder.path("/{login}").build(login)).retrieve();
     }
 }

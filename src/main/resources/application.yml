@@ -19,5 +19,4 @@ server:
   port: 8080
 
 github:
-  url: https://api.github.com/
-  users_endpoint: /users
+  users_url: https://api.github.com/users
