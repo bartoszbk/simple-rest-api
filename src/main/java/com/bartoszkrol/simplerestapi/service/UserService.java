@@ -57,7 +57,7 @@ public class UserService {
         int reposNum = (Integer) githubResponse.getOrDefault(JsonFields.PUBLIC_REPOS.getName(), 0);
 
         if (followersNum == 0 || reposNum == 0) {
-            log.error(String.format("Invalid division by zero for user with login: %s", login));
+            log.error(String.format("Invalid division by zero for user with login: '%s'", login));
             return 0.0;
         }
 

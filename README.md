@@ -24,7 +24,7 @@ Project can be imported as the Gradle project to your favorite IDE by using *bui
 To run project with Gradle in terminal you need to enter the project folder and run commands:
 ```
 ./gradlew build - this command builds project and runs tests.
-./gradlew run - this command runs project and allows entering input by terminal.
+./gradlew run - this command runs project and allows API usage.
 ```
 ## Manual ##
 

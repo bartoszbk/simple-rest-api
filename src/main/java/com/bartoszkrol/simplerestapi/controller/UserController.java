@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-@Slf4j
 @RestController
 @AllArgsConstructor
+@Slf4j
 public class UserController {
 
     private UserService userService;
 
     @GetMapping(value = "/users/{login}")
     public ResponseEntity<Map<String, Object>> getUserByLogin(@PathVariable("login") String login) {
-        log.info(String.format("User request for login: %s ", login));
+        log.info(String.format("User request for login: '%s' ", login));
         return ResponseEntity.ok(userService.getUserByLogin(login));
     }
 }

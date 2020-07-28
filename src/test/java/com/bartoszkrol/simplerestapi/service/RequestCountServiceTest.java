@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class RequestCountServiceTest extends BaseSpringTestClass {
 
-    RequestCountRepository requestCountRepository;
+    private RequestCountRepository requestCountRepository;
 
-    RequestCountService requestCountService;
+    private RequestCountService requestCountService;
 
     @Test
     void incrementCountByLoginWhenUserNotExistsIsCorrect() {

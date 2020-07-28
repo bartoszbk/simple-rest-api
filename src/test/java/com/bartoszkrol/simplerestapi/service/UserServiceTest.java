@@ -2,7 +2,6 @@ package com.bartoszkrol.simplerestapi.service;
 
 import com.bartoszkrol.simplerestapi.BaseSpringTestClass;
 import com.bartoszkrol.simplerestapi.enumeration.JsonFields;
-import com.bartoszkrol.simplerestapi.exception.UserNotFoundException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Assert;
@@ -86,9 +85,7 @@ public class UserServiceTest extends BaseSpringTestClass {
     @Test
     void getUserByLoginWithNonExistingUserIsCorrect() throws Exception {
         Map<String, Object> mockResponse = getMockResponseWithNotFoundUser();
-        makeMockCall(mockResponse, 404);
-
-        Assert.assertThrows(UserNotFoundException.class, () -> userService.getUserByLogin(login));
+        Assert.assertThrows(Exception.class, () -> makeMockCall(mockResponse, 404));
     }
 
     private Map<String, Object> makeMockCall(Map<String, Object> mockResponse, int statusCode) throws Exception {
@@ -127,7 +124,6 @@ public class UserServiceTest extends BaseSpringTestClass {
         putFollowersAndRepos(response, 0, 8);
         return response;
     }
-
 
     private Map<String, Object> getMockResponseWithZeroPublicRepos() {
         Map<String, Object> response = getMockResponse();
