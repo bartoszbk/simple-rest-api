@@ -24,7 +24,7 @@ Project can be imported as the Gradle project to your favorite IDE by using *bui
 To run project with Gradle in terminal you need to enter the project folder and run commands:
 ```
 ./gradlew build - this command builds project and runs tests.
-./gradlew run - this command runs project and allows API usage.
+./gradlew bootRun - this command runs project and allows API usage.
 ```
 ## Manual ##
 
@@ -36,7 +36,7 @@ GET /users/{login}
 
 ## Project structure ##
 
-[Directory tree]
+![Directory tree](rest_api_tree.png)
 
 Project main class is *SimpleRestApiApplication*. It contains the main method of the project. 
 
@@ -55,3 +55,9 @@ Package *repository* contains DAO objects in a form of JPA repositories. It cont
 Package *service* contains service classes containing business logic. 
 
 Package *utils* contains utils classes. It contains class *WebClientProvider* providing an instance of WebClient.
+
+## Datasource ##
+
+Datasource used in the project is H2 database. It is accessible during the project running under url: 
+{{port}}/h2-console/. To log to the database it is necessary to provide datasource credentials for a 
+corresponding profile. In the case of this project corresponding credentials are in the application.yml file.
