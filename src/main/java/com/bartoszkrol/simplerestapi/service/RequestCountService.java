@@ -11,15 +11,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class RequestCountService {
 
-    RequestCountRepository requestCountRepository;
+    private RequestCountRepository requestCountRepository;
 
-    public void incrementCountByLogin(String login) {
+    public RequestCount incrementCountByLogin(String login) {
         log.info(String.format("Increment request count for login: %s", login));
 
-        requestCountRepository.getByLogin(login).map(requestCount -> requestCountRepository.save(requestCount.incrementRequestCount())).orElseGet(() -> {
-            log.info(String.format("Saving user with login: %s", login));
-            return requestCountRepository.save(new RequestCount(login, 1));
-        });
+        return requestCountRepository.getByLogin(login).map(requestCount -> requestCountRepository.save(requestCount.incrementRequestCount()))
+                .orElseGet(() -> {
+                    log.info(String.format("Saving user with login: %s", login));
+                    return requestCountRepository.save(new RequestCount(login, 1));
+                });
     }
 
 }
